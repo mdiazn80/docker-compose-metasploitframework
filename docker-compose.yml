@@ -1,0 +1,44 @@
+version: '3.8'
+services:
+  msf: 
+    build: 
+      context: metasploitframework/
+      args:
+        MSF_VERSION: ${MSF_VERSION}
+    hostname: metasploitframework
+    container_name: metasploitframework
+    environment:
+      DATABASE_URL: postgres://postgres@postgres:5432/msf?pool=200&timeout=5
+    links:
+      - "postgres"
+    ports:
+      - 4444:4444
+    volumes:
+      - type: bind
+        source: ./volume/msf
+        target: /home/msf/.msf4
+    networks:
+      - msf-network
+
+  postgres:
+    build:
+      context: postgres/
+      args:
+        POSTGRES_VERSION: ${POSTGRES_VERSION}
+    hostname: postgres
+    container_name: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    volumes: 
+      - type: bind
+        source: ./volume/postgres
+        target: /var/lib/postgresql/data
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+    networks:
+      - msf-network
+
+networks:
+  msf-network:
+    driver: bridge
